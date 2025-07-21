@@ -109,6 +109,7 @@ public class BoardSearchImpl extends QuerydslRepositorySupport implements BoardS
         //          리턴        검색된 결과 board
         //                            페이징 처리용
         //                                검색된 갯수
+
     }
 
 

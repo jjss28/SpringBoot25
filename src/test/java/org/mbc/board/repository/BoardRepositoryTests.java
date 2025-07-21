@@ -26,17 +26,17 @@ public class BoardRepositoryTests {
     public void testInsert(){
         // 데이터베이스에 데이터 주입(c) 테스트 코드
         IntStream.rangeClosed(1,100).forEach(i -> {
-            // i 변수에 1~100까지 100개의 정수를 반복해서 생성
-            Board board = Board.builder()
-                    .title("제목..."+i)  // board.setTitle()
-                    .content("내용..."+i) // board.setContent()
-                    .writer("user"+(i%10))  // board.setWriter()
-                    .build(); // @Builder 용 (세터 대신 좀더 간단하고 가독성 좋게 )
-                // log.info((board));
-            Board result = boardRepository.save(board) ; // 데이터베이스에 기록하는 코드
-            //                            .save 메서드는 jpa에서 상속한 메서드로 값을 저장하는 용도
-            //                                          이미 값이 있으면 update를 진행한다.
-            log.info("게시물 번호 출력 : " + result.getBno() + "게시물의 제목 : " + result.getTitle());
+                    // i 변수에 1~100까지 100개의 정수를 반복해서 생성
+                    Board board = Board.builder()
+                            .title("제목..."+i)  // board.setTitle()
+                            .content("내용..."+i) // board.setContent()
+                            .writer("user"+(i%10))  // board.setWriter()
+                            .build(); // @Builder 용 (세터 대신 좀더 간단하고 가독성 좋게 )
+                    // log.info((board));
+                    Board result = boardRepository.save(board) ; // 데이터베이스에 기록하는 코드
+                    //                            .save 메서드는 jpa에서 상속한 메서드로 값을 저장하는 용도
+                    //                                          이미 값이 있으면 update를 진행한다.
+                    log.info("게시물 번호 출력 : " + result.getBno() + "게시물의 제목 : " + result.getTitle());
 
                 }// forEach문 종료
         );// IntStream. 종료
@@ -216,55 +216,45 @@ public class BoardRepositoryTests {
         //    from
         //        board b1_0
         //    where
-        //        b1_0.title like ? escape '!'  -> like 1
+        //        b1_0.title like ? escape '!'  -> like 1  -> 조건이 1개일 경우
 
-
-    // Hibernate:
-    //    select
-    //        b1_0.bno,
-    //        b1_0.content,
-    //        b1_0.moddate,
-    //        b1_0.regdate,
-    //        b1_0.title,
-    //        b1_0.writer
-    //    from
-    //        board b1_0
-    //    where
-    //        (
-    //            b1_0.title like ? escape '!'
-    //            or b1_0.content like ? escape '!'
-    //        )
-    //        and b1_0.bno>?
-    //    order by
-    //        b1_0.bno desc
-    //    limit
-    //        ?, ?
-    //Hibernate:
-    //    select
-    //        count(b1_0.bno)
-    //    from
-    //        board b1_0
-    //    where
-    //        (
-    //            b1_0.title like ? escape '!'
-    //            or b1_0.content like ? escape '!'
-    //        )
-    //        and b1_0.bno>?
+        //Hibernate:
+        //    select
+        //        b1_0.bno,
+        //        b1_0.content,
+        //        b1_0.moddate,
+        //        b1_0.regdate,
+        //        b1_0.title,
+        //        b1_0.writer
+        //    from
+        //        board b1_0
+        //    where
+        //        (
+        //            b1_0.title like ? escape '!'
+        //            or b1_0.content like ? escape '!'   -> 조건이 2개 title, content (booleanBuilder)
+        //        )
+        //        and b1_0.bno>?  -> query.where(board.bno.gt(0L))
+        //    order by
+        //        b1_0.bno desc
+        //    limit
+        //        ?, ?   -> this.getQuerydsl().applyPagination(pageable, query);
+        //  PageRequest.of(1,10, Sort.by("bno").descending());
 
     }
 
     @Test
-    public void testSearchAll() {
-        // 프론트에서 t가 선택되면 title, c가 선택되면 content, w가 선택되면 writer가 조건으로 게시됨
+    public void testSearchAll(){
+        // 프론트에서 t가 선택되면 title, c가 선택되면 content, w가 선택되면 writer가 조건으로 제시됨
 
-        String[] types = {"t", "w"}; // 검색 조건
+        String[] types = {"t", "w"};  // 검색 조건
 
-        String keyword = "10"; // 검색 단어
+        String keyword = "10";  // 검색 단어
 
-        Pageable pageable = PageRequest.of(0,10,Sort.by("bno").descending());
+        Pageable pageable = PageRequest.of(0,10, Sort.by("bno").descending());
 
         Page<Board> result = boardRepository.searchAll(types, keyword, pageable);
-        // Hibernate:
+
+        //Hibernate:
         //    select
         //        b1_0.bno,
         //        b1_0.content,
@@ -278,25 +268,14 @@ public class BoardRepositoryTests {
         //        (
         //            b1_0.title like ? escape '!'
         //            or b1_0.content like ? escape '!'
-        //            or b1_0.writer like ? escape '!'
+        //            or b1_0.writer like ? escape '!'      //   if( (types != null && types.length >0 ) && keyword !=null ){
         //        )
         //        and b1_0.bno>?
         //    order by
-        //        b1_0.bno desc
+        //        b1_0.bno desc    // PageRequest.of(0,10, Sort.by("bno").descending());
         //    limit
         //        ?, ?
-        //Hibernate:
-        //    select
-        //        count(b1_0.bno)
-        //    from
-        //        board b1_0
-        //    where
-        //        (
-        //            b1_0.title like ? escape '!'
-        //            or b1_0.content like ? escape '!'
-        //            or b1_0.writer like ? escape '!'
-        //        )
-        //        and b1_0.bno>?
+
 
         log.info("전체 게시물 수 : " + result.getTotalElements());  // 99
         log.info("총 페이지 수 : " + result.getTotalPages());       // 10
@@ -308,4 +287,6 @@ public class BoardRepositoryTests {
         result.getContent().forEach(board -> log.info(board));
 
     }
+
+
 } // 클래스 종료
