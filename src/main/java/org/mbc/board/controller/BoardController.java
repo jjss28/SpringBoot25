@@ -4,7 +4,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.mbc.board.dto.BoardDTO;
-import org.mbc.board.dto.BoardListReplyCountDTO;
 import org.mbc.board.dto.PageRequestDTO;
 import org.mbc.board.dto.PageResponseDTO;
 import org.mbc.board.service.BoardService;
@@ -12,6 +11,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -25,19 +25,16 @@ public class BoardController {
     private final BoardService boardService;
 
     @GetMapping("/list")
-    public void list(PageRequestDTO pageRequestDTO, Model model){
-        // 페이징 처리와 정렬과 검색이 추가된 리스트가 나옴.
+    public void list(PageRequestDTO pageRequestDTO, Model model,
+                     @ModelAttribute("result") String result) {
+        PageResponseDTO<BoardDTO> responseDTO = boardService.list(pageRequestDTO);
 
-        // p548쪽 제외PageResponseDTO<BoardDTO> responseDTO = boardService.list(pageRequestDTO);
-        // 페이징 처리가 되는 요청을 처리하고 결과를 response로 받는다.
+        model.addAttribute("responseDTO", responseDTO);
 
-        PageResponseDTO<BoardListReplyCountDTO> responseDTO =
-                boardService.listWithReplyCount(pageRequestDTO);
-        // 댓글의 갯수용 dto로 프론트 전달!!
-
-        log.info(responseDTO);
-
-        model.addAttribute("responseDTO",responseDTO); // 결과를 스프링이 관리하는 모델 객체로 전달
+        // FlashAttribute로 전달된 result가 있을 경우 뷰로 전달
+        if (result != null) {
+            model.addAttribute("result", result);
+        }
     }
 
 

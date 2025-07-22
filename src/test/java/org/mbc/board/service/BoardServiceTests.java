@@ -11,7 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
 @Log4j2
-public class BoardserviceTests {
+public class BoardServiceTests {
 
     @Autowired
     private BoardService boardService;
@@ -41,7 +41,7 @@ public class BoardserviceTests {
         //    values
         //        (?, ?, ?, ?, ?)
     }
-    
+
     @Test
     public void testModify(){
 
