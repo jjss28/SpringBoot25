@@ -5,6 +5,7 @@ import groovy.util.logging.Log4j2;
 import lombok.RequiredArgsConstructor;
 import org.mbc.board.domain.Board;
 import org.mbc.board.dto.BoardDTO;
+import org.mbc.board.dto.BoardListReplyCountDTO;
 import org.mbc.board.dto.PageRequestDTO;
 import org.mbc.board.dto.PageResponseDTO;
 import org.mbc.board.repository.BoardRepository;
@@ -26,7 +27,7 @@ public class BoardServiceImpl implements BoardService {
 
     private final ModelMapper modelMapper;  // 엔티티와 dto를 변환
     private final BoardRepository boardRepository; // jpa용 클래스 (CURD, 페이징, 정렬, 다중검색)
-
+    
     @Override
     public Long register(BoardDTO boardDTO) {  // 조원이 실행코드를 만든다.
         // 폼에서 넘어온 DTO가 데이터베이스에 기록되어야 함.
@@ -35,7 +36,7 @@ public class BoardServiceImpl implements BoardService {
 
         Long bno = boardRepository.save(board).getBno();
         //                  insert into board ~~~~ -> bno를 받는다.
-
+        
         return bno; // 프론트에 게시물 저장 후 번호가 전달 된다.
     }
 
@@ -88,13 +89,31 @@ public class BoardServiceImpl implements BoardService {
         List<BoardDTO> dtoList = result.getContent().stream() // stream() 바이트가 전달되는 기법
                 .map(board -> modelMapper.map(board,BoardDTO.class)) // 모델메퍼로 엔티티가 dto 변환
                 .collect(Collectors.toList()); //Collectors.toList() 리스트로 변환
-        // 엔티티를 dto로 변환하는 코드
+        // 엔티티를 dto로 변환하는 코드 
 
         return PageResponseDTO.<BoardDTO>withAll()
                 .pageRequestDTO(pageRequestDTO)
                 .dtoList(dtoList)
                 .total((int)result.getTotalElements())
                 .build(); // 빌더패턴을 이용해서 리턴할 때 사용함.
+    }
+
+    @Override
+    public PageResponseDTO<BoardListReplyCountDTO> listWithReplyCount(PageRequestDTO pageRequestDTO) {
+
+        String[] types = pageRequestDTO.getTypes();
+        String keyword = pageRequestDTO.getKeyword();
+        Pageable pageable = pageRequestDTO.getPageable("bno");
+
+        Page<BoardListReplyCountDTO> result = boardRepository.
+                searchWithReplyCount(types, keyword, pageable);
+
+        return PageResponseDTO.<BoardListReplyCountDTO>withAll()
+                .pageRequestDTO(pageRequestDTO)
+                .dtoList(result.getContent())
+                .total((int)result.getTotalElements())
+                .build();
+        // 리스트 페이지에 페이징처리, 정렬, 게시판의리스트, 댓글의 개수가 리턴됨!
     }
 
 }
