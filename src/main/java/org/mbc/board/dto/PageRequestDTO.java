@@ -66,7 +66,7 @@ public class PageRequestDTO {
     }// 메서드 종료
 
 
-    // 추가메서드
+    // 추가메서드 
     public String[] getTypes(){
         // 프론트에서 문자열이 여러개가 넘어오면 배열로 변환
         if(type==null || type.isEmpty()){
@@ -78,7 +78,7 @@ public class PageRequestDTO {
     }
 
     // 테스트용 코드를 dto로 만들어 메서드 처리함!!!
-    public Pageable getPageable(String...props){ // String...props 배열이 몇개가 들어올지 모를때
+    public Pageable getPageable(String...props){ // String...props 배열이 몇개가 들어올지 모를때 
         return PageRequest.of(this.page-1, this.size, Sort.by(props).descending());
         //                    페이지번호     게시물 수    정렬기법
     }

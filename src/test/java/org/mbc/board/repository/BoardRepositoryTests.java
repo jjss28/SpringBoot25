@@ -3,6 +3,7 @@ package org.mbc.board.repository;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.Test;
 import org.mbc.board.domain.Board;
+import org.mbc.board.dto.BoardListReplyCountDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
@@ -26,17 +27,17 @@ public class BoardRepositoryTests {
     public void testInsert(){
         // 데이터베이스에 데이터 주입(c) 테스트 코드
         IntStream.rangeClosed(1,100).forEach(i -> {
-                    // i 변수에 1~100까지 100개의 정수를 반복해서 생성
-                    Board board = Board.builder()
-                            .title("제목..."+i)  // board.setTitle()
-                            .content("내용..."+i) // board.setContent()
-                            .writer("user"+(i%10))  // board.setWriter()
-                            .build(); // @Builder 용 (세터 대신 좀더 간단하고 가독성 좋게 )
-                    // log.info((board));
-                    Board result = boardRepository.save(board) ; // 데이터베이스에 기록하는 코드
-                    //                            .save 메서드는 jpa에서 상속한 메서드로 값을 저장하는 용도
-                    //                                          이미 값이 있으면 update를 진행한다.
-                    log.info("게시물 번호 출력 : " + result.getBno() + "게시물의 제목 : " + result.getTitle());
+            // i 변수에 1~100까지 100개의 정수를 반복해서 생성
+            Board board = Board.builder()
+                    .title("제목..."+i)  // board.setTitle()
+                    .content("내용..."+i) // board.setContent()
+                    .writer("user"+(i%10))  // board.setWriter()
+                    .build(); // @Builder 용 (세터 대신 좀더 간단하고 가독성 좋게 )
+                // log.info((board));
+            Board result = boardRepository.save(board) ; // 데이터베이스에 기록하는 코드
+            //                            .save 메서드는 jpa에서 상속한 메서드로 값을 저장하는 용도
+            //                                          이미 값이 있으면 update를 진행한다.
+            log.info("게시물 번호 출력 : " + result.getBno() + "게시물의 제목 : " + result.getTitle());
 
                 }// forEach문 종료
         );// IntStream. 종료
@@ -288,5 +289,25 @@ public class BoardRepositoryTests {
 
     }
 
+    @Test
+    public void testSearchReplyCount(){
+
+        String[] types= {"t","c","w"};  // 제목, 내용, 작성자
+        String keyword = "1";           // 제목이나 내용이나 작성자에 1값을 찾는다.
+
+        Pageable pageable = PageRequest.of(0,10, Sort.by("bno").descending());
+
+        Page<BoardListReplyCountDTO> result = boardRepository.searchWithReplyCount(types, keyword, pageable);
+
+        log.info("전체 게시물 수 : " + result.getTotalElements());  // 20
+        log.info("총 페이지 수 : " + result.getTotalPages());       // 2
+        log.info("현재 페이지 번호 : " + result.getNumber());       // 0
+        log.info("페이지당 데이터 개수 : " + result.getSize() );     // 10
+        log.info("다음페이지 여부 : " + result.hasNext());          // true
+        log.info("시작페이지 여부 : " + result.isFirst());         // true
+
+        result.getContent().forEach(board -> log.info(board));
+        // BoardListReplyCountDTO(bno=100, title=제목...100(수정테스트), writer=user0, regDate=2025-07-22T11:11:46.002548, replyCount=2)
+    }
 
 } // 클래스 종료
